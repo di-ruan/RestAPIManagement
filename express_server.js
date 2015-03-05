@@ -1,5 +1,12 @@
 var express = require("express");
 var http = require("http");
+var AWS = require('aws-sdk'),
+  awsCredentialsPath = './sqs-config.json',
+  sqsQueueUrl = 'https://sqs.us-west-2.amazonaws.com/359642914898/do-rest-logging',
+  sqsQueueArn = 'arn:aws:sqs:us-west-2:359642914898:do-rest-logging',
+  sqs;
+AWS.config.loadFromPath(awsCredentialsPath);
+sqs = new AWS.SQS();
 
 var app = express();
 
@@ -15,15 +22,27 @@ app.get('/user/:id', function (req, res, next) {
   res.send('USER');
 });
 
-function myFunMiddleware(request, response, next) {
-	console.log('Time:', Date.now());
-	console.log("In comes a " + request.method + " to " + request.url);
-	next();
+//logging middleware
+function loggingMiddleware(request, response, next) {
+	var params = {
+    MessageBody: "Bang",
+    QueueUrl: sqsQueueUrl,
+    DelaySeconds: 0
+  };
+  sqs.sendMessage(params, function(err, result){
+    console.log("Message Sent");
+  });
+  next();
 }
+
+//use logging middleware
+app.use(loggingMiddleware);
 
 app.use(function(request, response) {
   response.writeHead(200, { "Content-Type": "text/plain" });
   response.end("Hello world!\n");
+  console.log("hello displayed");
 });
+
 
 http.createServer(app).listen(1337);
