@@ -1,0 +1,12 @@
+{
+  "name": "RestAPIManagement",
+  "description" : "Middleware to provide security, logging",
+  "repository" : {
+  	"type" : "git",
+  	"url" : "https://github.com/di-ruan/RestAPIManagement"
+  },
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "4.12.0"
+  }
+}
