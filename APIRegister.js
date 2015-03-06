@@ -20,10 +20,18 @@ app.get('/getkey', function(req, res) {
 	if(username == undefined || password == undefined) {
 		res.send('need username and password');	
 	} else {
-		var key = username + '_' + password;
-		var record = new model({username: username, password: password, key: record	});
-		console.log(record);
-		record.save();
+		var key;
+		var found = false;
+		model.find({username: username, password: password}, function(data) {
+			key = data.key;	
+			found = true;
+		});
+		if(!found) {
+			key = username + '_' + password;
+			var record = new model({username: username, password: password, key: record	});
+			console.log(record);
+			record.save();
+		}
 		res.send(key);
 	}
 });
