@@ -23,26 +23,41 @@ app.get('/user/:id', function (req, res, next) {
 });
 
 //logging middleware
-function loggingMiddleware(request, response, next) {
+function beforeLoggingMiddleware(request, response, next) {
 	var params = {
-    MessageBody: "Bang",
+    MessageBody: "Before Bang",
     QueueUrl: sqsQueueUrl,
     DelaySeconds: 0
   };
   sqs.sendMessage(params, function(err, result){
-    console.log("Message Sent");
+    console.log("Message1 Sent");
   });
   next();
 }
 
-//use logging middleware
-app.use(loggingMiddleware);
+//logging middleware
+function afterLoggingMiddleware(request, response, next) {
+  var params = {
+    MessageBody: "After Bang",
+    QueueUrl: sqsQueueUrl,
+    DelaySeconds: 0
+  };
+  sqs.sendMessage(params, function(err, result){
+    console.log("Message2 Sent");
+  });
+  next();
+}
+
+//use first logging middleware
+app.use(beforeLoggingMiddleware);
+
+//use first logging middleware
+app.use(afterLoggingMiddleware);
 
 app.use(function(request, response) {
   response.writeHead(200, { "Content-Type": "text/plain" });
   response.end("Hello world!\n");
   console.log("hello displayed");
 });
-
 
 http.createServer(app).listen(1337);
