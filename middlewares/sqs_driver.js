@@ -3,6 +3,7 @@ var awsCredentialsPath = './sqs-config.json';
 var sqsQueueUrl = 'https://sqs.us-west-2.amazonaws.com/359642914898/do-rest-logging';
 AWS.config.loadFromPath(awsCredentialsPath);
 var sqs = new AWS.SQS();
+console.log("AWS on");
 
 // Constructor
 function sqs_driver() {

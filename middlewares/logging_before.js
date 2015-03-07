@@ -3,6 +3,6 @@ var driver = new sqs_driver();
 
 //logging middleware
 module.exports = function logging_after(request, response, next) {
-  driver.send("bang");
+  driver.send("request");
   next();
 }
