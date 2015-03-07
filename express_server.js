@@ -1,13 +1,5 @@
 var express = require("express");
 var http = require("http");
-var AWS = require('aws-sdk'),
-  awsCredentialsPath = './sqs-config.json',
-  sqsQueueUrl = 'https://sqs.us-west-2.amazonaws.com/359642914898/do-rest-logging',
-  sqsQueueArn = 'arn:aws:sqs:us-west-2:359642914898:do-rest-logging',
-  sqs;
-AWS.config.loadFromPath(awsCredentialsPath);
-sqs = new AWS.SQS();
-
 var app = express();
 
 
@@ -22,37 +14,10 @@ app.get('/user/:id', function (req, res, next) {
   res.send('USER');
 });
 
-//logging middleware
-function beforeLoggingMiddleware(request, response, next) {
-	var params = {
-    MessageBody: "Before Bang",
-    QueueUrl: sqsQueueUrl,
-    DelaySeconds: 0
-  };
-  sqs.sendMessage(params, function(err, result){
-    console.log("Message1 Sent");
-  });
-  next();
-}
+//use middlewares
+app.use(require("./middlewares/logging_before"));
 
-//logging middleware
-function afterLoggingMiddleware(request, response, next) {
-  var params = {
-    MessageBody: "After Bang",
-    QueueUrl: sqsQueueUrl,
-    DelaySeconds: 0
-  };
-  sqs.sendMessage(params, function(err, result){
-    console.log("Message2 Sent");
-  });
-  next();
-}
-
-//use first logging middleware
-app.use(beforeLoggingMiddleware);
-
-//use first logging middleware
-app.use(afterLoggingMiddleware);
+app.use(require("./middlewares/logging_after"));
 
 app.use(function(request, response) {
   response.writeHead(200, { "Content-Type": "text/plain" });
