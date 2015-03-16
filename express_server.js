@@ -16,7 +16,12 @@ app.get('/user/:id', function (req, res, next) {
 ///////////////////////
 
 //before middlewares
+app.use(require("./middlewares/security_before"));
+
+app.use(require("./middlewares/authorization_before"));
+
 app.use(require("./middlewares/logging_before"));
+
 
 //request to HM1 API
 app.use(function(request, response, next) {
@@ -28,5 +33,11 @@ app.use(function(request, response, next) {
 
 //after middlewares
 app.use(require("./middlewares/logging_after"));
+
+app.use(require("./middlewares/security_after"));
+
+app.use(require("./middlewares/authorization_after"));
+
+
 
 http.createServer(app).listen(1337);
