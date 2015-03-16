@@ -16,7 +16,7 @@ app.get('/user/:id', function (req, res, next) {
 ///////////////////////
 
 //before middlewares
-app.use(require("./middlewares/security_before"));
+// app.use(require("./middlewares/security_before"));
 
 app.use(require("./middlewares/logging_before"));
 
