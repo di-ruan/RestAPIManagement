@@ -28,12 +28,14 @@ app.get('/getkey', function(req, res) {
 		var found = false;
 		var key = '';
 		model.find({username: username, hash_password: hash_password}, function(data) {
-			key = data.key;	
+			key = data.key;
 			found = true;
 		});
 		if(found) {
-			res.send({key: key});
-		} else {			
+			res.writeHead(200, {"Content-Type": "application/json"});
+			res.send(JSON.stringify({"key" : key}));
+		} else {	
+			res.writeHead(400, {"Content-Type": "text/plain"});
 			res.send("wrong username or password");
 		}
 	}
@@ -52,8 +54,11 @@ app.post('/register', function(req, res) {
 			found = true;
 		});
 		if(found) {
+			res.writeHead(400, {"Content-Type": "text/plain"});
 			res.send("user already registered");
-		} else {		
+		} else {	
+			res.writeHead(202, {"Content-Type": "text/plain"});
+			res.send();
 			var group = username.length%2;
 			var key = username + '_' + hash_password + group;
 			var record = new model({username: username, hash_password: hash_password, key: key});
