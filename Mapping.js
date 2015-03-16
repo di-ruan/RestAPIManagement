@@ -6,13 +6,6 @@ var express = require("express"),
 	db = monk('localhost:27017/apimapping');
 	app = express();
 
-// a middleware mounted on /user/:id; will be executed for any type of HTTP request to /user/:id
-//app.use('/user/:id', function (req, res, next) {
-//  console.log('Request Type:', req.method);
-//  next();
-//});
-
-
 
 app.use(bodyParser.json());
 
@@ -185,16 +178,6 @@ function send_response(res, code, responseObj){
 	res.writeHead(code, { "Content-Type": "Application/json" });
 	res.end(JSON.stringify(responseObj));
 }
-
-
-
-//request to HM1 API
-//app.use(function(request, response, next) {
-  //response.writeHead(200, { "Content-Type": "text/plain" });
-  //response.end("Hello world!\n");
-  //console.log("hello displayed");
-  //next();
-//});
 
 
 http.createServer(app).listen(9090);
