@@ -18,8 +18,6 @@ app.get('/user/:id', function (req, res, next) {
 //before middlewares
 app.use(require("./middlewares/security_before"));
 
-app.use(require("./middlewares/authorization_before"));
-
 app.use(require("./middlewares/logging_before"));
 
 
@@ -35,8 +33,6 @@ app.use(function(request, response, next) {
 app.use(require("./middlewares/logging_after"));
 
 app.use(require("./middlewares/security_after"));
-
-app.use(require("./middlewares/authorization_after"));
 
 
 
