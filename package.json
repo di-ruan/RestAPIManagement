@@ -1,29 +1,25 @@
 {
   "name": "RestAPIManagement",
-<<<<<<< HEAD
-  "description": "Middleware to provide security, logging",
+  "version": "1.0.0",
+  "description": "A service for Restful API management",
+  "main": "APIRegister.js",
+  "dependencies": {
+    "aws-sdk": "^2.1.15",
+    "express": "^4.12.0",
+    "mongoose": "^3.8.24"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/di-ruan/RestAPIManagement"
-=======
-  "description" : "Middleware to provide security, logging, Etag, Cache",
-  "repository" : {
-  	"type" : "git",
-  	"url" : "https://github.com/di-ruan/RestAPIManagement"
->>>>>>> 7fc17a16bed17b8448f8cc2d4e3a70d9561ba9e9
+    "url": "https://github.com/di-ruan/RestAPIManagement.git"
   },
-  "version": "1.0",
-  "dependencies": {
-<<<<<<< HEAD
-    "aws-sdk": "2.1.15",
-    "express": "^4.12.0",
-    "mongoose": "3.8.24"
-=======
-    "express": "4.12.0",
-    "mongoose": "3.8.24",
-    "aws-sdk": "2.1.17",
-    "crypto-js": "3.1.2",
-    "redis": "0.12.1"
->>>>>>> 7fc17a16bed17b8448f8cc2d4e3a70d9561ba9e9
-  }
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/di-ruan/RestAPIManagement/issues"
+  },
+  "homepage": "https://github.com/di-ruan/RestAPIManagement"
 }
