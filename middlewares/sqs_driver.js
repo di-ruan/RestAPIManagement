@@ -11,16 +11,16 @@ function sqs_driver() {
 
 // send method
 sqs_driver.prototype.send = function(message) {
-	var params = {
+  var params = {
     MessageBody: message,
     QueueUrl: sqsQueueUrl,
     DelaySeconds: 0
   };
   sqs.sendMessage(params, function(err, result){
-  	if (err)
-  		console.log(err);
-  	else
-    	console.log("Logging Message Sent");
+    if (err)
+      console.log(err);
+    else
+      console.log("Logging Message Sent");
   });
 };
 
