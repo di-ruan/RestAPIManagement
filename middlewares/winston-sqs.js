@@ -36,7 +36,7 @@ SQS.prototype.log = function(level, msg, meta, callback) {
     if (err)
       console.log(err);
     else
-      console.log("Winston Message Sent");
+      console.log("SQS Message Sent");
     return callback(err, !!response);
   });
 }

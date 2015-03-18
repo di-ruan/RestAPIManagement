@@ -1,12 +1,18 @@
-var winston = require('winston');
 //var sqs_driver = require("./sqs_driver");
+var winston = require('winston');
 var winston_sqs = require('./winston-sqs');
 
-//logging middleware
-module.exports = function logging_before(request, response, next) {
-  winston.log('info', 'win-request');
-  //var driver = new sqs_driver();
-  //driver.send('request');
-  next();
-}
+var express = require("express");
+var http = require("http");
+var bodyParser = require('body-parser');
+var app = express();
 
+app.use(bodyParser.json());
+
+app.post("*", function(request, response){
+  response.writeHead(200, { "Content-Type": "application/json" });
+  winston.log('info', JSON.stringify(request.body));
+  response.end(JSON.stringify(request.body));
+});
+
+http.createServer(app).listen(9701);
