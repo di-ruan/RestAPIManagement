@@ -38,14 +38,13 @@ var findDocuments = function(db, callback) {
       console.log(JSON.stringify(responseHeaders));
       callback(docs);
       return JSON.stringify(responseHeaders);
-  }else{
-    var responseHeaders = {'statusCode': 203};
-    console.log(JSON.stringify(responseHeaders));
-    return JSON.stringify(responseHeaders);
-  }
+    }else{
+      var responseHeaders = {'statusCode': 203};
+      console.log(JSON.stringify(responseHeaders));
+      return JSON.stringify(responseHeaders);
+    }
   });  
 }
-
 
 //security
 module.exports = function security_before(request, response, next) {
