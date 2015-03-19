@@ -1,5 +1,9 @@
 var express = require("express");
+var http = require("http");
+var bodyParser = require('body-parser');
 var app = express();
+
+// app.use(bodyParser.json());
 
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
@@ -8,18 +12,18 @@ var MongoClient = require('mongodb').MongoClient
 var obj = JSON.parse('{"key": 5678}');
 var key = obj.key.toString();
 console.log('Get Key:'+ obj.key);
- 
+  
 // Connection URL 
 var url = 'mongodb://localhost:27017/mydb';
 
 // Use connect method to connect to the Server 
 MongoClient.connect(url, function(err, db) {
- 	assert.equal(null, err);
-  	console.log("Connected correctly to db server");
-  	findDocuments(db, function() {
+  assert.equal(null, err);
+    console.log("Connected correctly to db server");
+    findDocuments(db, function() {
 
-  		db.close();
-	});
+      db.close();
+  });
 });
 
 var findDocuments = function(db, callback) {
@@ -45,9 +49,4 @@ var findDocuments = function(db, callback) {
     }
   });  
 }
-
-//security
-module.exports = function security_before(request, response, next) {
-
-  next();
-}
+http.createServer(app).listen(9707);
