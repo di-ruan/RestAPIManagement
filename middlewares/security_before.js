@@ -71,11 +71,12 @@ function checkKey(key){
         assert.equal(null, err);
         assert.equal(key,docs.key);
         if(docs.group === '1'){
+          callback(docs);
           return 1;
         }else if(docs.group ==='2'){
+          callback(docs);
           return 0;
         }
-        callback(docs);
       }else
         return -1;
       }
@@ -85,28 +86,28 @@ function checkKey(key){
 
 function key_match(request, response)
 {
-  console.log("GET match");
+  console.log("Key match");
   request.body.response['status code'] = 201;
   response.end(JSON.stringify(request.body));
 }
 
 function key_not_match(request, response)
 {
-  console.log("GET not match");
+  console.log("Key not match");
   request.body.response['status code'] = 401;
   response.end(JSON.stringify(request.body));
 }
 
 function group_match(request, response)
 {
-  console.log("PUT match");
+  console.log("Group match");
   request.body.response['status code'] = 201;
   response.end(JSON.stringify(request.body));
 }
 
 function group_not_match(request, response)
 {
-  console.log("PUT not match");
+  console.log("Group not match");
   request.body.response['status code'] = 405;
   response.end(JSON.stringify(request.body));
 }
