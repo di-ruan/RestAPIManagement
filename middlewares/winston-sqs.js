@@ -1,7 +1,7 @@
 var aws         = require("aws-sdk");
 var winston     = require("winston");
 var util        = require("util");
-var awsCredentialsPath = './sqs-config.json';
+var awsCredentialsPath = '../sqs-config.json';
 var sqsQueueUrl = 'https://sqs.us-west-2.amazonaws.com/359642914898/do-rest-logging';
 
 aws.config.loadFromPath(awsCredentialsPath);
