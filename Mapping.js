@@ -1,10 +1,11 @@
 var express = require("express"),
 	http = require("http"),
 	bodyParser = require('body-parser'),
-	mongo = require('mongodb');
-	monk = require('monk');
-	db = monk('localhost:27017/apimapping');
-	app = express();
+	mongo = require('mongodb'),
+	monk = require('monk'),
+	db = monk('localhost:27017/apimapping'),
+	app = express(),
+	helpers = require('./Helpers');
 
 
 app.use(bodyParser.json());
@@ -155,28 +156,20 @@ app.get('/mapping', function (req, res, next) {
 });
 
 function strip_protocol(url){
-	return url.replace(/^https?:\/\//, "");  			
+	console.log(helpers)
+	return helpers.strip_protocol(url);
 }
 
 function strip_suffix(url){
-	return url.replace(/(\/.*)+/, "");
+	return helpers.strip_suffix(url);
 }
 
 function send_failed(req, res, code, messages){
-	var responseObj = {
-  			success: false,
-  			messages: messages
-  		};
-
-	send_response(res, code, responseObj);
+	helpers.send_failed(req, res, code, messages);
 }
 
 function send_response(res, code, responseObj){
-	responseObj = responseObj || {success: true};
-	code = code || 200;
-
-	res.writeHead(code, { "Content-Type": "Application/json" });
-	res.end(JSON.stringify(responseObj));
+	helpers.send_response(res, code, responseObj);
 }
 
 

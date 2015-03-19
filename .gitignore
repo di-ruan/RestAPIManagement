@@ -1,3 +1,4 @@
 node_modules
 npm-debug.log
 sqs-config.json
+dump.rdb

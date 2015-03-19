@@ -1,7 +1,7 @@
 var express = require("express");
 var http = require("http");
 var mongoose = require('mongoose');
-var sha1 = require('sha1');
+var sha1 = require('crypto-js/sha1');
 
 var app = express();
 
