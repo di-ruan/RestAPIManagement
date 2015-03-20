@@ -44,21 +44,24 @@ app.all("*", function(req, res, next){
 			}
 
 			var middlewareObj = {
-				requestHeaders: req.headers,
-				responseHeaders: {
+				request: {
+					headers: req.headers,
+					method: req.method
+				},
+				response: {
+					headers: {},
 					statusCode: 201
 				},
-				publicUrl: map.publicUrl,
-				privateUrl: map.privateUrl
-			};
+				publicUrl: "http://" + wholeUrl,
+				privateUrl: "http://" + map.privateUrl + wholeUrl.substring(map.publicUrl.length, wholeUrl.length)			
+			};					
 
-			var calls = build_call_functions(map, middlewareObj, res);			
-			//before_middleware(map.beforeMiddleware, middlewareObj);
+			build_call_functions(map, middlewareObj, req, res);
     	}
 	);
 });
 
-function build_call_functions(map, middlewareObj, res){
+function build_call_functions(map, middlewareObj, req, res){
 	var before_functions = [],
 		after_functions = [],		
 		currentIndex = 0;
@@ -71,11 +74,10 @@ function build_call_functions(map, middlewareObj, res){
 				json: middlewareObject
 			}, http_before_callback
 			);
-
-			console.log(middleware);
 		});
 
 	});
+
 
 	map.afterMiddleware.forEach(function(middleware){
 		after_functions.push(function(middlewareObject){
@@ -92,12 +94,10 @@ function build_call_functions(map, middlewareObj, res){
 
 	function http_before_callback(error, response, body){
 		if(error){
-			console.log(error);
-			return;
+			console.log('error-before', error);			
 		}
 
 		currentIndex++;		
-		console.log("before ", response.statusCode, currentIndex);
 
 		if(response.statusCode == 200){
 			if(before_functions[currentIndex]){
@@ -110,34 +110,87 @@ function build_call_functions(map, middlewareObj, res){
 			if(after_functions.length){
 				after_functions[0](body);
 			}else{
-				console.log("Done. Before");
+				res.writeHead(response.statusCode, body.response.headers);
+				var data = body.response.result.data || "";
+
+				if(data && typeof data != "string"){
+					data = JSON.stringify(data);
+				}
+
+				res.end(data);
 			}
 		}
 	}
 
-	function call_private(map, res, body){
-		console.log("private");
-		if(after_functions.length){
-			after_functions[0](body);
-		}else{
-			res.end("Done. Call private");
+	function call_private(map, res, body){		
+		delete body.request.headers.host;
+
+		var middlewareObj = body,
+			privateUrl = middlewareObj.privateUrl,
+			headers = middlewareObj.request.headers,
+			method = middlewareObj.request.method,
+			reqObj = {
+				method: method,
+				uri: middlewareObj.privateUrl,
+				headers: middlewareObj.request.headers				
+			};			
+
+		switch(method.toUpperCase()){
+			case 'POST':
+			case 'PUT':
+				reqObj.json = req.body;
+				break;
+			case 'GET':
+			case 'DELETE':
+			default:
+				break;
 		}
+
+		console.log(reqObj);
+
+
+		request(reqObj, function(error, response, body){
+				if(error){
+					console.log('error-private', error);
+				}
+
+				middlewareObj.response.headers = response.headers;
+				middlewareObj.response.statusCode = response.statusCode;
+				middlewareObj.response.result = {data: body};
+
+				if(after_functions.length){
+					console.log(middlewareObj);
+					after_functions[0](middlewareObj);
+				}else{
+					res.end(body);
+				}				
+			}
+			);
 	}
 
 	function http_after_callback(error, response, body){
 		if(error){
-			console.log(error);
-			return;
+			console.log('error-after', error);			
 		}
 
 		currentIndex++;		
-		console.log("After", response.statusCode, currentIndex);
 
 		if(response.statusCode == 200){
 			if(after_functions[currentIndex]){
 				after_functions[currentIndex](body);
-			}else{				
-				res.end("Done. After");
+			}else{
+				/* Hack */
+				delete body.response.headers['content-length'];
+
+				res.writeHead(body.response.statusCode, body.response.headers);
+
+				var data = body.response.result.data || "";
+
+				if(data && typeof data != "string"){
+					data = JSON.stringify(data);
+				}
+
+				res.end(data);
 			}
 		}else{
 			res.end("No 200. Don't know!");
@@ -151,21 +204,5 @@ function build_call_functions(map, middlewareObj, res){
 		call_private(middlewareObj);
 	}
 }
-
-
-function before_middleware(beforeMiddleware, midObj){
-	return call_middleware(beforeMiddleware, midObj);
-}
-
-function after_middleware(afterMiddleware, midObj){
-	return call_middleware(afterMiddleware, midObj);
-}
-
-function call_middleware(middleware, midObj){
-	middleware.forEach(function(call){
-		console.log(call.url);
-	});
-}
-
 
 http.createServer(app).listen(9091);
