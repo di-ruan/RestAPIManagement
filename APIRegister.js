@@ -25,23 +25,20 @@ app.get('/getkey', function(req, res) {
 		res.write("need username and password");
 		res.send();	
 	} else {
-		var hash_password = sha1(password);
-		console.log(hashed_password);
-		var found = false;
-		var key = '';
-		collection.find({username: username, hash_password: hash_password}, function(data) {
-			key = data.key;
-			found = true;
+		var hash_password = sha1(password).toString();
+		collection.find({username: username, hash_password: hash_password}, function(data) {			
+			if(data != null) {
+				var key = data.key;
+				res.writeHead(200, {"Content-Type": "application/json"});
+				res.write(JSON.stringify({"key" : key}));
+				res.send();
+			} else {	
+				res.writeHead(400, {"Content-Type": "text/plain"});
+				res.write("wrong username or password");
+				res.send();
+			}
 		});
-		if(found) {
-			res.writeHead(200, {"Content-Type": "application/json"});
-			res.write(JSON.stringify({"key" : key}));
-			res.send();
-		} else {	
-			res.writeHead(400, {"Content-Type": "text/plain"});
-			res.write("wrong username or password");
-			res.send();
-		}
+		
 	}
 });
 
@@ -49,32 +46,30 @@ app.get('/getkey', function(req, res) {
 app.post('/register', function(req, res) {
 	var username = req.query.username;
 	var password = req.query.password;
+	
 	if(username == undefined || password == undefined) {
 		res.send('need username and password');	
 	} else {
 		var hash_password = sha1(password).toString();
-		var found = false;
 		collection.find({username: username}, function(data) {
-			found = true;
+			if(data != null) {
+				res.writeHead(400, {"Content-Type": "text/plain"});
+				res.write('username exists')
+				res.send();
+			} else {		
+				var group = username.length%2;
+				var key = username + '_' + hash_password + group;
+				var record = {username: username, hash_password: hash_password, key: key, group: group};
+				collection.insert(record, function(err, doc) {
+					if(err) throw err;
+					else {
+						res.writeHead(202, {"Content-Type": "text/plain"});
+						res.write('new record inserted')
+						res.send();		
+					}
+				});			
+			}
 		});
-		if(found) {
-			res.writeHead(400, {"Content-Type": "text/plain"});
-			res.write('username exists')
-			res.send();
-		} else {		
-			var group = username.length%2;
-			var key = username + '_' + hash_password + group;
-
-			var record = {username: username, hash_password: hash_password, key: key, group: group};
-
-			collection.insert(record, function(err, doc) {
-				if(err) throw err;
-			});
-
-			res.writeHead(202, {"Content-Type": "text/plain"});
-			res.write('new record inserted')
-			res.send();			
-		}
 	}
 });
 
