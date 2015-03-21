@@ -25,10 +25,10 @@ app.get('/getkey', function(req, res) {
 		res.write("need username and password");
 		res.send();	
 	} else {
-		var hash_password = sha1(password).toString();
-		collection.find({username: username, hash_password: hash_password}, function(data) {			
-			if(data != null) {
-				var key = data.key;
+		var hash_password = sha1(password).toString();		
+		collection.find({username: username, hash_password: hash_password}, function(err, data) {			
+			if(data != null && data.length > 0) {
+				var key = data[0].key;
 				res.writeHead(200, {"Content-Type": "application/json"});
 				res.write(JSON.stringify({"key" : key}));
 				res.send();
@@ -46,13 +46,14 @@ app.get('/getkey', function(req, res) {
 app.post('/register', function(req, res) {
 	var username = req.query.username;
 	var password = req.query.password;
-	
+
 	if(username == undefined || password == undefined) {
 		res.send('need username and password');	
 	} else {
 		var hash_password = sha1(password).toString();
-		collection.find({username: username}, function(data) {
-			if(data != null) {
+		collection.find({username: username}, function(err, data) {
+			console.log(data);
+			if(data.length > 0) {
 				res.writeHead(400, {"Content-Type": "text/plain"});
 				res.write('username exists')
 				res.send();
