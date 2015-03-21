@@ -6,7 +6,7 @@ var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
 // Connection URL 
-var url = 'mongodb://localhost:27017/mydb';
+var url = 'mongodb://localhost:27017/users';
 
 
 app.use(bodyParser.json());
@@ -64,7 +64,7 @@ function checkKey(key){
   });
   var findDocuments = function(db, callback) {
     // Get the documents collection 
-    var collection = db.collection('testData');
+    var collection = db.collection('userinfo');
     // Check if the key exists
     collection.findOne({'key':key},function(err, docs) {
       if(typeof docs !== 'undefined' && docs !== null){
