@@ -52,7 +52,7 @@ app.post('/register', function(req, res) {
 	if(username == undefined || password == undefined) {
 		res.send('need username and password');	
 	} else {
-		var hash_password = sha1(password);
+		var hash_password = sha1(password).toString();
 		var found = false;
 		collection.find({username: username}, function(data) {
 			found = true;
@@ -64,11 +64,13 @@ app.post('/register', function(req, res) {
 		} else {		
 			var group = username.length%2;
 			var key = username + '_' + hash_password + group;
+
 			var record = {username: username, hash_password: hash_password, key: key, group: group};
-			console.log(record);
+
 			collection.insert(record, function(err, doc) {
 				if(err) throw err;
 			});
+
 			res.writeHead(202, {"Content-Type": "text/plain"});
 			res.write('new record inserted')
 			res.send();			
