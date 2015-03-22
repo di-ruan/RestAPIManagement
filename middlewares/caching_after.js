@@ -1,0 +1,35 @@
+var express = require("express");
+var http = require("http");
+var bodyParser = require('body-parser');
+var redis = require('redis');
+var app = express();
+
+app.use(bodyParser.json());
+
+client = redis.createClient();
+client.on("error", function(err) {
+    console.log("Error " + err);
+});
+
+app.post("*", function(request, response) {
+    response.writeHead(200, { "Content-Type": "application/json"});
+    var url = request.body.privateUrl;
+    var method = request.body.request.method
+    if (method == 'GET' && isValid(url)) {
+        var data = JSON.stringify(request.body.result.data)
+        client.set(url, data, function(err, replies) {
+            console.log(method + ': new entry inserted!')
+        });
+        // The same question goes here.
+        request.body.statusCode = 201
+        response.end(JSON.stringify(request.body))
+    } else {
+        response.end(JSON.stringify(request.body))
+    }
+});
+
+function isValid(url) {
+    return /[a-zA-Z0-9]+\/[0-9]+$/.test(url);
+}
+
+http.createServer(app).listen(9710);
