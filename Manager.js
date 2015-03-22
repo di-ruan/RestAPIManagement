@@ -50,8 +50,10 @@ app.all("*", function(req, res, next){
 				},
 				response: {
 					headers: {},
-					statusCode: 201
+					result: {},
+					statusCode: 200
 				},
+				skip: false,
 				publicUrl: "http://" + wholeUrl,
 				privateUrl: "http://" + map.privateUrl + wholeUrl.substring(map.publicUrl.length, wholeUrl.length)			
 			};					
@@ -68,6 +70,7 @@ function build_call_functions(map, middlewareObj, req, res){
 
 	map.beforeMiddleware.forEach(function(middleware){
 		before_functions.push(function(middlewareObject){
+			console.log('calling "' + middleware.url + '"');
 			request({
 				method: 'POST',
 				uri: middleware.url,
@@ -81,14 +84,13 @@ function build_call_functions(map, middlewareObj, req, res){
 
 	map.afterMiddleware.forEach(function(middleware){
 		after_functions.push(function(middlewareObject){
+			console.log('calling "' + middleware.url + '"');
 			request({
 				method: 'POST',
 				uri: middleware.url,
 				json: middlewareObject
 			}, http_after_callback
 			);
-
-			console.log(middleware);
 		});
 	});
 
@@ -100,25 +102,32 @@ function build_call_functions(map, middlewareObj, req, res){
 		currentIndex++;		
 
 		if(response.statusCode == 200){
-			if(before_functions[currentIndex]){
-				before_functions[currentIndex](body);
+			if(body.skip == false){
+				if(before_functions[currentIndex]){
+					before_functions[currentIndex](body);
+				}else{
+					currentIndex = 0;
+					call_private(map, res, body);
+				}
 			}else{
-				currentIndex = 0;
-				call_private(map, res, body);
+				/* Return to false to be able to execute after middleware */
+				body.skip = false;
+				if(after_functions.length){
+					after_functions[0](body);
+				}else{
+					res.writeHead(response.statusCode, body.response.headers);
+					var data = body.response.result.data || "";
+
+					if(data && typeof data != "string"){
+						data = JSON.stringify(data);
+					}
+
+					res.end(data);
+				}
 			}
 		}else{
-			if(after_functions.length){
-				after_functions[0](body);
-			}else{
-				res.writeHead(response.statusCode, body.response.headers);
-				var data = body.response.result.data || "";
-
-				if(data && typeof data != "string"){
-					data = JSON.stringify(data);
-				}
-
-				res.end(data);
-			}
+			res.writeHead(500, {});
+			res.end("");
 		}
 	}
 
@@ -146,9 +155,7 @@ function build_call_functions(map, middlewareObj, req, res){
 				break;
 		}
 
-		console.log(reqObj);
-
-
+		console.log('calling "' +  middlewareObj.privateUrl + '"');
 		request(reqObj, function(error, response, body){
 				if(error){
 					console.log('error-private', error);
@@ -159,10 +166,15 @@ function build_call_functions(map, middlewareObj, req, res){
 				middlewareObj.response.result = {data: body};
 
 				if(after_functions.length){
-					console.log(middlewareObj);
 					after_functions[0](middlewareObj);
 				}else{
-					res.writeHead(response.statusCode, body.response.headers);
+					delete response.headers['content-length'];
+					res.writeHead(response.statusCode, response.headers);
+
+					if(typeof body != "string"){
+						body = JSON.stringify(body);
+					}
+
 					res.end(body);
 				}				
 			}
@@ -177,25 +189,36 @@ function build_call_functions(map, middlewareObj, req, res){
 		currentIndex++;		
 
 		if(response.statusCode == 200){
-			if(after_functions[currentIndex]){
-				after_functions[currentIndex](body);
+			if(body.skip == false){
+				if(after_functions[currentIndex]){
+					after_functions[currentIndex](body);
+				}else{
+					/* Hack */
+					delete body.response.headers['content-length'];
+
+					res.writeHead(body.response.statusCode, body.response.headers);
+
+					var data = body.response.result.data || "";
+
+					if(data && typeof data != "string"){
+						data = JSON.stringify(data);
+					}
+
+					res.end(data);
+				}
 			}else{
-				/* Hack */
-				delete body.response.headers['content-length'];
+				res.writeHead(500, {});
 
-				res.writeHead(body.response.statusCode, body.response.headers);
-
-				var data = body.response.result.data || "";
-
-				if(data && typeof data != "string"){
-					data = JSON.stringify(data);
+				if(typeof body != 'string'){
+					body = JSON.stringify(body);
 				}
 
-				res.end(data);
+				console.log('failure: ' + body);
+				res.end("failure");
 			}
 		}else{
-			res.writeHead(500, body.response.headers);
-			res.end("No 200. Don't know!");
+			res.writeHead(500, {});
+			res.end("");
 		}
 	}	
 
