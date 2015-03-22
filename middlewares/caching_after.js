@@ -24,8 +24,7 @@ app.post("*", function(request, response) {
                 console.log('Key expires in 3 days!');
             });
         });
-        // The same question goes here.
-        request.body.statusCode = 201;
+                
         response.end(JSON.stringify(request.body));
     } else {
         response.end(JSON.stringify(request.body));
