@@ -127,6 +127,7 @@ function key_not_match(request, response)
 {
   console.log("Key not match");
   request.body.response['statusCode'] = "401";
+  request.body.response['skip'] = true;
   response.end(JSON.stringify(request.body));
 }
 
@@ -140,6 +141,7 @@ function group_not_match(request, response)
 {
   console.log("Group not match");
   request.body.response['statusCode'] = "401";
+  request.body.response['skip'] = true;
   response.end(JSON.stringify(request.body));
 }
 
