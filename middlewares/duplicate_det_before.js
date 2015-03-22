@@ -23,6 +23,7 @@ app.post("*", function(request, response){
   if (request.body.request.headers.nonce == null)
   {
     request.body.response.statusCode = 412;
+    request.body.skip = true;
     response.end(JSON.stringify(request.body));
     return;
   }
@@ -47,6 +48,7 @@ function nonce_match(request, response)
   console.log("nonce match");
   var nonce = request.body.request.headers['nonce'];
   request.body.response['statusCode'] = 409;
+  request.body.skip = true;
   expire_nonce("nonce:" + nonce);
   response.end(JSON.stringify(request.body));
 }

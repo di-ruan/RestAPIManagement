@@ -66,6 +66,7 @@ function get_match(request, response)
 {
   console.log("GET match");
   request.body.response['statusCode'] = 304;
+  request.body.skip = true;
   response.end(JSON.stringify(request.body));
 }
 
@@ -85,6 +86,7 @@ function put_not_match(request, response)
 {
   console.log("PUT not match");
   request.body.response['statusCode'] = 412;
+  request.body.skip = true;
   response.end(JSON.stringify(request.body));
 }
 
