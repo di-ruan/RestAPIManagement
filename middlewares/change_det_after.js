@@ -17,7 +17,7 @@ app.post("*", function(request, response){
     return;
   }
   response.writeHead(200, { "Content-Type": "application/json"});
-  if (request.body.response.statusCode[0] != 2)
+  if (("" + request.body.response.statusCode)[0] != "2")
   {
     response.end(JSON.stringify(request.body));
     return;
