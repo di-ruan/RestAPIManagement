@@ -13,18 +13,22 @@ client.on("error", function(err) {
 
 app.post("*", function(request, response) {
     response.writeHead(200, { "Content-Type": "application/json"});
+    var timeout = 259200;       // timeout in seconds
     var url = request.body.privateUrl;
-    var method = request.body.request.method
+    var method = request.body.request.method;
     if (method == 'GET' && isValid(url)) {
-        var data = JSON.stringify(request.body.result.data)
+        var data = JSON.stringify(request.body.result.data);
         client.set(url, data, function(err, replies) {
-            console.log(method + ': new entry inserted!')
+            console.log(method + ': new entry inserted!');
+            client.expire(url, timeout, function(err, replies) {
+                console.log('Key expires in 3 days!');
+            });
         });
         // The same question goes here.
-        request.body.statusCode = 201
-        response.end(JSON.stringify(request.body))
+        request.body.statusCode = 201;
+        response.end(JSON.stringify(request.body));
     } else {
-        response.end(JSON.stringify(request.body))
+        response.end(JSON.stringify(request.body));
     }
 });
 
