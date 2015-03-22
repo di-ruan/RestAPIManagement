@@ -93,9 +93,9 @@ app.post("*", function(request, response){
     if(typeof docs !== 'undefined' && docs !== null){
         assert.equal(null, err);
         console.log('key exists');
-        if(docs.group === '1'){
+        if(docs.group == '1'){
           group_match(request,response);
-        }else if(docs.group ==='2'){
+        }else if(docs.group == '2'){
           group_not_match(request,response);
         }else{
           key_not_match(request,response);
@@ -114,7 +114,7 @@ app.post("*", function(request, response){
   
 });
 
-http.createServer(app).listen(9707);
+http.createServer(app).listen(9717);
 
 
 function key_match(request, response)

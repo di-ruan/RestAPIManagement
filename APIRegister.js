@@ -58,7 +58,7 @@ app.post('/register', function(req, res) {
 				res.write('username exists')
 				res.send();
 			} else {		
-				var group = username.length%2;
+				var group = username.length%2+1;
 				var key = username + '_' + hash_password + group;
 				var record = {username: username, hash_password: hash_password, key: key, group: group};
 				collection.insert(record, function(err, doc) {
@@ -74,4 +74,4 @@ app.post('/register', function(req, res) {
 	}
 });
 
-app.listen(9092);
+app.listen(9093);
