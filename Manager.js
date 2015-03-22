@@ -110,6 +110,8 @@ function build_call_functions(map, middlewareObj, req, res){
 					call_private(map, res, body);
 				}
 			}else{
+				/* Return to false to be able to execute after middleware */
+				body.skip = false;
 				if(after_functions.length){
 					after_functions[0](body);
 				}else{
@@ -124,7 +126,8 @@ function build_call_functions(map, middlewareObj, req, res){
 				}
 			}
 		}else{
-			console.log('before error. Possibly 500');
+			res.writeHead(500, {});
+			res.end("");
 		}
 	}
 
@@ -205,11 +208,17 @@ function build_call_functions(map, middlewareObj, req, res){
 				}
 			}else{
 				res.writeHead(500, {});
+
+				if(typeof body != 'string'){
+					body = JSON.stringify(body);
+				}
+
 				console.log('failure: ' + body);
 				res.end("failure");
 			}
 		}else{
-			console.log('before error. Possibly 500');
+			res.writeHead(500, {});
+			res.end("");
 		}
 	}	
 
