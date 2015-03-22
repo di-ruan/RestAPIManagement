@@ -156,7 +156,6 @@ app.get('/mapping', function (req, res, next) {
 });
 
 function strip_protocol(url){
-	console.log(helpers)
 	return helpers.strip_protocol(url);
 }
 

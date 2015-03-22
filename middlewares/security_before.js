@@ -13,7 +13,7 @@ var url = 'mongodb://localhost:27017/mydb';
 app.use(bodyParser.json());
 
 
-app.post("/*", function(request, response){
+app.post("*", function(request, response){
   if (!valid_json(request.body))
   {
     response.writeHead(400, { "Content-Type": "text/plain"});
@@ -36,36 +36,38 @@ app.post("/*", function(request, response){
       return;
     }
 
-  MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-      console.log("Connected correctly to db server");
-       findDocuments(db,function() {
-        db.close();
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+        console.log("Connected correctly to db server");
+        findDocuments(db,function() {
+          db.close();
+      });
     });
-  });
 
-  var findDocuments = function(db,callback) {
+    var findDocuments = function(db,callback) {
 
     // Get the documents collection 
     var collection = db.collection('testData');
 
     // Check if the key exists
-    collection.findOne({'key':'q'},function(err, docs) {
+    collection.findOne({'key':key},function(err, docs) {
+      if(typeof docs !== 'undefined' && docs !== null){
         assert.equal(null, err);
-    if(typeof docs !== 'undefined' && docs !== null){
-        console.log('kye exists');
+        console.log('key exists');
         if(docs.group == '1' || docs.group =='2'){
           key_match(request,response);
         }else{
           key_not_match(request,respnse);
         }
-    }
-   });
-  };
+      }else{
+        console.log('key not exists');
+        key_not_match(request,response);
+      }
 
-
+    });
+    };
   }else 
-  if (request.body.request.method == "PUT" || request.body.request.method == "DELETE" || request.body.request.method == "INSERT")
+  if (request.body.request.method == "PUT" || request.body.request.method == "DELETE" || request.body.request.method == "POST")
   {
     var key = request.body.request.headers['Key'];
     if (key == "" || key == undefined || key == null){
@@ -85,26 +87,31 @@ app.post("/*", function(request, response){
 
     // Get the documents collection 
     var collection = db.collection('testData');
-
+    
     // Check if the key exists
-    collection.findOne({'key':'q'},function(err, docs) {
-        assert.equal(null, err);
+    collection.findOne({'key':key},function(err, docs) {
     if(typeof docs !== 'undefined' && docs !== null){
-        console.log('kye exists');
+        assert.equal(null, err);
+        console.log('key exists');
         if(docs.group === '1'){
-          group_match(request,respnse);
+          group_match(request,response);
         }else if(docs.group ==='2'){
-          group_not_match(request,respnse);
+          group_not_match(request,response);
         }else{
-          key_not_match(request,respnse);
+          key_not_match(request,response);
         }
+    }else{
+      console.log('key not exists');
+      key_not_match(request,response);
     }
    });
+
   };
   }
   else
     //TODO Error happened, what to do
     response.end(JSON.stringify(request.body));
+  
 });
 
 http.createServer(app).listen(9707);
@@ -119,7 +126,7 @@ function key_match(request, response)
 function key_not_match(request, response)
 {
   console.log("Key not match");
-  request.body.response['status code'] = 401;
+  request.body.response['statusCode'] = "401";
   response.end(JSON.stringify(request.body));
 }
 
@@ -132,7 +139,7 @@ function group_match(request, response)
 function group_not_match(request, response)
 {
   console.log("Group not match");
-  request.body.response['status code'] = 401;
+  request.body.response['statusCode'] = "401";
   response.end(JSON.stringify(request.body));
 }
 
@@ -148,4 +155,3 @@ function valid_json(body)
     return false;
   return true;
 }
-

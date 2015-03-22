@@ -162,6 +162,7 @@ function build_call_functions(map, middlewareObj, req, res){
 					console.log(middlewareObj);
 					after_functions[0](middlewareObj);
 				}else{
+					res.writeHead(response.statusCode, body.response.headers);
 					res.end(body);
 				}				
 			}
@@ -193,6 +194,7 @@ function build_call_functions(map, middlewareObj, req, res){
 				res.end(data);
 			}
 		}else{
+			res.writeHead(500, body.response.headers);
 			res.end("No 200. Don't know!");
 		}
 	}	

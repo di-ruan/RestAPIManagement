@@ -26,7 +26,7 @@ app.post("*", function(request, response){
     response.end(JSON.stringify(request.body));
     return;
   }
-  if (request.body.request.method == "POST" || request.body.request.method == "DELETE")
+  if (request.body.request.method == "POST")
   {
     var nonce = request.body.request.headers['Nonce'];
     client.get("nonce:" + nonce, function(err, reply) {
