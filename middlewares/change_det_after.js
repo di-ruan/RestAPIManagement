@@ -88,7 +88,7 @@ function put_match(request, response)
   var tag = "" + sha1(url + new Date().toISOString() + randomInt(0, 16384))
   set_etag("etag:" + url, tag);
   expire_etag("etag:" + url);
-  request.body.response.ETag = tag;
+  request.body.response.headers.ETag = tag;
   response.end(JSON.stringify(request.body));
 }
 
