@@ -8,7 +8,6 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post("*", function(request, response){
-  console.log(request.body);
   if (!valid_json(request.body))
   {
     response.writeHead(400, { "Content-Type": "text/plain"});
@@ -16,12 +15,12 @@ app.post("*", function(request, response){
     return;
   }
   response.writeHead(200, { "Content-Type": "application/json"});
-  if (("" + request.body.response.statusCode)[0] == "2")
-  {    
+  if (("" + request.body.response.statusCode)[0] != "2")
+  {
     response.end(JSON.stringify(request.body));
     return;
   }
-  if (request.body.request.headers.Nonce == null)
+  if (request.body.request.headers.nonce == null)
   {
     request.body.response.statusCode = 412;
     response.end(JSON.stringify(request.body));
@@ -29,7 +28,7 @@ app.post("*", function(request, response){
   }
   if (request.body.request.method == "POST")
   {
-    var nonce = request.body.request.headers['Nonce'];
+    var nonce = request.body.request.headers['nonce'];
     client.get("nonce:" + nonce, function(err, reply) {
       if (reply == "" || reply == undefined || reply == null)
         nonce_not_match(request, response);
@@ -46,7 +45,7 @@ http.createServer(app).listen(9705);
 function nonce_match(request, response)
 {
   console.log("nonce match");
-  var nonce = request.body.request.headers['Nonce'];
+  var nonce = request.body.request.headers['nonce'];
   request.body.response['statusCode'] = 409;
   expire_nonce("nonce:" + nonce);
   response.end(JSON.stringify(request.body));
@@ -55,14 +54,16 @@ function nonce_match(request, response)
 function nonce_not_match(request, response)
 {
   console.log("nonce not match");
-  set_nonce("nonce:", nonce);
+  var nonce = request.body.request.headers['nonce'];
+  console.log("asd" , nonce);
+  set_nonce(nonce);
   expire_nonce("nonce:" + nonce);
   response.end(JSON.stringify(request.body));
 }
 
 function set_nonce(nonce)
 {
-  client.set(nonce, "1", redis.print);
+  client.set("nonce:" + nonce, "1", redis.print);
 }
 
 function expire_nonce(nonce)
