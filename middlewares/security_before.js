@@ -29,7 +29,7 @@ app.post("*", function(request, response){
   }
 
   if(request.body.request.method == "GET"){
-    var key = request.body.request.headers['Key'];
+    var key = request.body.request.headers['key'];
 
    if (key == "" || key == undefined || key == null){
       key_not_match(request, response);
@@ -69,7 +69,7 @@ app.post("*", function(request, response){
   }else 
   if (request.body.request.method == "PUT" || request.body.request.method == "DELETE" || request.body.request.method == "POST")
   {
-    var key = request.body.request.headers['Key'];
+    var key = request.body.request.headers['key'];
     if (key == "" || key == undefined || key == null){
       key_not_match(request, response);
       return;
@@ -119,13 +119,13 @@ http.createServer(app).listen(9717);
 
 function key_match(request, response)
 {
-  console.log("Key match");
+  console.log("key match");
   response.end(JSON.stringify(request.body));
 }
 
 function key_not_match(request, response)
 {
-  console.log("Key not match");
+  console.log("key not match");
   request.body.response['statusCode'] = "401";
   request.body.response['skip'] = true;
   response.end(JSON.stringify(request.body));
