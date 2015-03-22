@@ -23,9 +23,9 @@ app.post("*", function(request, response) {
                 console.log(method + ': key not found!');
             } else {
                 // The same goes here. Is this the data to be modified?
-                response.writeHead(304, { "Content-Type": "application/json"});
-                request.body.statusCode = 304;
-                request.body.result.data = JSON.parse(replies);
+                response.writeHead(203, { "Content-Type": "application/json"});
+                request.body.response.statusCode = 200;
+                request.body.response.result.data = JSON.parse(replies);
                 console.log(method + ': key found!');
             }
             response.end(JSON.stringify(request.body));

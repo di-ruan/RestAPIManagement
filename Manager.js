@@ -50,7 +50,8 @@ app.all("*", function(req, res, next){
 				},
 				response: {
 					headers: {},
-					statusCode: 201
+					result: {},
+					statusCode: 200
 				},
 				publicUrl: "http://" + wholeUrl,
 				privateUrl: "http://" + map.privateUrl + wholeUrl.substring(map.publicUrl.length, wholeUrl.length)			
@@ -68,6 +69,7 @@ function build_call_functions(map, middlewareObj, req, res){
 
 	map.beforeMiddleware.forEach(function(middleware){
 		before_functions.push(function(middlewareObject){
+			console.log('calling "' + middleware.url + '"');
 			request({
 				method: 'POST',
 				uri: middleware.url,
@@ -81,14 +83,13 @@ function build_call_functions(map, middlewareObj, req, res){
 
 	map.afterMiddleware.forEach(function(middleware){
 		after_functions.push(function(middlewareObject){
+			console.log('calling "' + middleware.url + '"');
 			request({
 				method: 'POST',
 				uri: middleware.url,
 				json: middlewareObject
 			}, http_after_callback
 			);
-
-			console.log(middleware);
 		});
 	});
 
@@ -146,9 +147,7 @@ function build_call_functions(map, middlewareObj, req, res){
 				break;
 		}
 
-		console.log(reqObj);
-
-
+		console.log('calling "' +  middlewareObj.privateUrl + '"');
 		request(reqObj, function(error, response, body){
 				if(error){
 					console.log('error-private', error);
@@ -159,7 +158,6 @@ function build_call_functions(map, middlewareObj, req, res){
 				middlewareObj.response.result = {data: body};
 
 				if(after_functions.length){
-					console.log(middlewareObj);
 					after_functions[0](middlewareObj);
 				}else{
 					res.writeHead(response.statusCode, body.response.headers);
@@ -182,7 +180,7 @@ function build_call_functions(map, middlewareObj, req, res){
 			}else{
 				/* Hack */
 				delete body.response.headers['content-length'];
-
+				
 				res.writeHead(body.response.statusCode, body.response.headers);
 
 				var data = body.response.result.data || "";
@@ -194,8 +192,9 @@ function build_call_functions(map, middlewareObj, req, res){
 				res.end(data);
 			}
 		}else{
-			res.writeHead(500, body.response.headers);
-			res.end("No 200. Don't know!");
+			res.writeHead(500, {});
+			console.log('failure: ' + body);
+			res.end("failure");
 		}
 	}	
 

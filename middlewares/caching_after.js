@@ -17,14 +17,14 @@ app.post("*", function(request, response) {
     var url = request.body.privateUrl;
     var method = request.body.request.method;
     if (method == 'GET' && isValid(url)) {
-        var data = JSON.stringify(request.body.result.data);
+        var data = JSON.stringify(request.body.response.result.data);
         client.set(url, data, function(err, replies) {
             console.log(method + ': new entry inserted!');
             client.expire(url, timeout, function(err, replies) {
                 console.log('Key expires in 3 days!');
             });
         });
-                
+
         response.end(JSON.stringify(request.body));
     } else {
         response.end(JSON.stringify(request.body));
