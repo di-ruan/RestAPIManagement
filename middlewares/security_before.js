@@ -36,7 +36,7 @@ app.post("*", function(request, response){
   var findDocuments = function(db,callback) {
 
     // Get the documents collection 
-    var collection = db.collection('testData');
+    var collection = db.collection('userinfo');
 
     // Check if the key exists
     collection.findOne({'key':'q'},function(err, docs) {
@@ -75,8 +75,6 @@ app.post("*", function(request, response){
     var findDocuments = function(db,callback) {
 
     // Get the documents collection 
-    var collection = db.collection('testData');
-
     var collection = db.collection('userinfo');
     
     // Check if the key exists
