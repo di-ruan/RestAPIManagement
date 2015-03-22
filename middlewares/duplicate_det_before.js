@@ -8,6 +8,7 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post("*", function(request, response){
+  console.log(request.body);
   if (!valid_json(request.body))
   {
     response.writeHead(400, { "Content-Type": "text/plain"});
@@ -16,7 +17,7 @@ app.post("*", function(request, response){
   }
   response.writeHead(200, { "Content-Type": "application/json"});
   if (("" + request.body.response.statusCode)[0] == "2")
-  {
+  {    
     response.end(JSON.stringify(request.body));
     return;
   }

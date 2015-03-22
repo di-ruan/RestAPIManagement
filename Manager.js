@@ -53,6 +53,7 @@ app.all("*", function(req, res, next){
 					result: {},
 					statusCode: 200
 				},
+				skip: false,
 				publicUrl: "http://" + wholeUrl,
 				privateUrl: "http://" + map.privateUrl + wholeUrl.substring(map.publicUrl.length, wholeUrl.length)			
 			};					
@@ -101,25 +102,29 @@ function build_call_functions(map, middlewareObj, req, res){
 		currentIndex++;		
 
 		if(response.statusCode == 200){
-			if(before_functions[currentIndex]){
-				before_functions[currentIndex](body);
+			if(body.skip == false){
+				if(before_functions[currentIndex]){
+					before_functions[currentIndex](body);
+				}else{
+					currentIndex = 0;
+					call_private(map, res, body);
+				}
 			}else{
-				currentIndex = 0;
-				call_private(map, res, body);
+				if(after_functions.length){
+					after_functions[0](body);
+				}else{
+					res.writeHead(response.statusCode, body.response.headers);
+					var data = body.response.result.data || "";
+
+					if(data && typeof data != "string"){
+						data = JSON.stringify(data);
+					}
+
+					res.end(data);
+				}
 			}
 		}else{
-			if(after_functions.length){
-				after_functions[0](body);
-			}else{
-				res.writeHead(response.statusCode, body.response.headers);
-				var data = body.response.result.data || "";
-
-				if(data && typeof data != "string"){
-					data = JSON.stringify(data);
-				}
-
-				res.end(data);
-			}
+			console.log('before error. Possibly 500');
 		}
 	}
 
@@ -160,7 +165,13 @@ function build_call_functions(map, middlewareObj, req, res){
 				if(after_functions.length){
 					after_functions[0](middlewareObj);
 				}else{
-					res.writeHead(response.statusCode, body.response.headers);
+					delete response.headers['content-length'];
+					res.writeHead(response.statusCode, response.headers);
+
+					if(typeof body != "string"){
+						body = JSON.stringify(body);
+					}
+
 					res.end(body);
 				}				
 			}
@@ -175,26 +186,30 @@ function build_call_functions(map, middlewareObj, req, res){
 		currentIndex++;		
 
 		if(response.statusCode == 200){
-			if(after_functions[currentIndex]){
-				after_functions[currentIndex](body);
-			}else{
-				/* Hack */
-				delete body.response.headers['content-length'];
-				
-				res.writeHead(body.response.statusCode, body.response.headers);
+			if(body.skip == false){
+				if(after_functions[currentIndex]){
+					after_functions[currentIndex](body);
+				}else{
+					/* Hack */
+					delete body.response.headers['content-length'];
 
-				var data = body.response.result.data || "";
+					res.writeHead(body.response.statusCode, body.response.headers);
 
-				if(data && typeof data != "string"){
-					data = JSON.stringify(data);
+					var data = body.response.result.data || "";
+
+					if(data && typeof data != "string"){
+						data = JSON.stringify(data);
+					}
+
+					res.end(data);
 				}
-
-				res.end(data);
+			}else{
+				res.writeHead(500, {});
+				console.log('failure: ' + body);
+				res.end("failure");
 			}
 		}else{
-			res.writeHead(500, {});
-			console.log('failure: ' + body);
-			res.end("failure");
+			console.log('before error. Possibly 500');
 		}
 	}	
 
