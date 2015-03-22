@@ -26,13 +26,18 @@ app.post("*", function(request, response){
     response.end(JSON.stringify(request.body));
     return;
   }
-  var nonce = request.body.request.headers['Nonce'];
-  client.get("nonce:" + nonce, function(err, reply) {
-    if (reply == "" || reply == undefined || reply == null)
-      nonce_not_match(request, response);
-    else
-      nonce_match(request, response);
-  });
+  if (request.body.request.method == "POST")
+  {
+    var nonce = request.body.request.headers['Nonce'];
+    client.get("nonce:" + nonce, function(err, reply) {
+      if (reply == "" || reply == undefined || reply == null)
+        nonce_not_match(request, response);
+      else
+        nonce_match(request, response);
+    });
+  }
+  else
+    response.end(JSON.stringify(request.body));
 });
 
 http.createServer(app).listen(9705);
