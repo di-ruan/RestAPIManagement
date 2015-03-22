@@ -8,7 +8,7 @@ var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
 // Connection URL 
-var url = 'mongodb://localhost:27017/mydb';
+var url = 'mongodb://localhost:27017/users';
 
 app.use(bodyParser.json());
 
@@ -75,8 +75,12 @@ app.post("*", function(request, response){
     var findDocuments = function(db,callback) {
 
     // Get the documents collection 
+<<<<<<< HEAD
     var collection = db.collection('testData');
 
+=======
+    var collection = db.collection('userinfo');
+>>>>>>> a30bbf32577c23e43c94800cfffe2534d2724d14
     // Check if the key exists
     collection.findOne({'key':'q'},function(err, docs) {
         assert.equal(null, err);

@@ -1,6 +1,5 @@
 var redis = require("redis");
 var client = redis.createClient();
-
 var express = require("express");
 var http = require("http");
 var bodyParser = require('body-parser');
@@ -9,9 +8,24 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post("*", function(request, response){
+  if (!valid_json(request.body))
+  {
+    response.writeHead(400, { "Content-Type": "text/plain"});
+    response.end("bad json format");
+    return;
+  }
   response.writeHead(200, { "Content-Type": "application/json"});
-  
-  //TODO If status code is inormal, cut the shit and return 
+  if (request.body.response.statusCode[0] != 2)
+  {
+    response.end(JSON.stringify(request.body));
+    return;
+  }
+  if (request.body.request.headers.Nonce == null)
+  {
+    request.body.response.statusCode = 412;
+    response.end(JSON.stringify(request.body));
+    return;
+  }
   if (request.body.request.method == "POST" || request.body.request.method == "DELETE")
   {
     var nonce = request.body.request.headers['Nonce'];
@@ -32,7 +46,7 @@ function nonce_match(request, response)
 {
   console.log("nonce match");
   var nonce = request.body.request.headers['Nonce'];
-  request.body.response['status code'] = 409;
+  request.body.response['statusCode'] = 409;
   expire_nonce("nonce:" + nonce);
   response.end(JSON.stringify(request.body));
 }
@@ -53,4 +67,17 @@ function set_nonce(nonce)
 function expire_nonce(nonce)
 {
   client.expire(nonce, 60, redis.print);
+}
+
+function valid_json(body)
+{
+  if (body == null || body.request == null || body.response == null || body.publicUrl == null || body.privateUrl == null)
+    return false;
+  var request = body.request;
+  if (request.headers == null || request.method == null)
+    return false;
+  var response = body.response;
+  if (response.headers == null || response.result == null || response.statusCode == null)
+    return false;
+  return true;
 }

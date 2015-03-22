@@ -3,6 +3,7 @@ var express = require("express"),
 	bodyParser = require('body-parser'),
 	mongo = require('mongodb'),
 	monk = require('monk'),
+	request = require('request'),
 	db = monk('localhost:27017/apimapping'),
 	helpers = require('./Helpers'),
 	app = express();
@@ -43,32 +44,165 @@ app.all("*", function(req, res, next){
 			}
 
 			var middlewareObj = {
-				requestHeaders: req.headers,
-				responseHeaders: {
+				request: {
+					headers: req.headers,
+					method: req.method
+				},
+				response: {
+					headers: {},
 					statusCode: 201
 				},
-				publicUrl: map.publicUrl,
-				privateUrl: map.privateUrl
-			};
+				publicUrl: "http://" + wholeUrl,
+				privateUrl: "http://" + map.privateUrl + wholeUrl.substring(map.publicUrl.length, wholeUrl.length)			
+			};					
 
-			var result = before_middleware(map.beforeMiddleware, middlewareObj);
+			build_call_functions(map, middlewareObj, req, res);
     	}
 	);
 });
 
-function before_middleware(beforeMiddleware, midObj){
-	return call_middleware(beforeMiddleware, midObj);
-}
+function build_call_functions(map, middlewareObj, req, res){
+	var before_functions = [],
+		after_functions = [],		
+		currentIndex = 0;
 
-function after_middleware(afterMiddleware, midObj){
-	return call_middleware(afterMiddleware, midObj);
-}
+	map.beforeMiddleware.forEach(function(middleware){
+		before_functions.push(function(middlewareObject){
+			request({
+				method: 'POST',
+				uri: middleware.url,
+				json: middlewareObject
+			}, http_before_callback
+			);
+		});
 
-function call_middleware(middleware, midObj){
-	middleware.forEach(function(call){
-		console.log(call.url);
 	});
-}
 
+
+	map.afterMiddleware.forEach(function(middleware){
+		after_functions.push(function(middlewareObject){
+			request({
+				method: 'POST',
+				uri: middleware.url,
+				json: middlewareObject
+			}, http_after_callback
+			);
+
+			console.log(middleware);
+		});
+	});
+
+	function http_before_callback(error, response, body){
+		if(error){
+			console.log('error-before', error);			
+		}
+
+		currentIndex++;		
+
+		if(response.statusCode == 200){
+			if(before_functions[currentIndex]){
+				before_functions[currentIndex](body);
+			}else{
+				currentIndex = 0;
+				call_private(map, res, body);
+			}
+		}else{
+			if(after_functions.length){
+				after_functions[0](body);
+			}else{
+				res.writeHead(response.statusCode, body.response.headers);
+				var data = body.response.result.data || "";
+
+				if(data && typeof data != "string"){
+					data = JSON.stringify(data);
+				}
+
+				res.end(data);
+			}
+		}
+	}
+
+	function call_private(map, res, body){		
+		delete body.request.headers.host;
+
+		var middlewareObj = body,
+			privateUrl = middlewareObj.privateUrl,
+			headers = middlewareObj.request.headers,
+			method = middlewareObj.request.method,
+			reqObj = {
+				method: method,
+				uri: middlewareObj.privateUrl,
+				headers: middlewareObj.request.headers				
+			};			
+
+		switch(method.toUpperCase()){
+			case 'POST':
+			case 'PUT':
+				reqObj.json = req.body;
+				break;
+			case 'GET':
+			case 'DELETE':
+			default:
+				break;
+		}
+
+		console.log(reqObj);
+
+
+		request(reqObj, function(error, response, body){
+				if(error){
+					console.log('error-private', error);
+				}
+
+				middlewareObj.response.headers = response.headers;
+				middlewareObj.response.statusCode = response.statusCode;
+				middlewareObj.response.result = {data: body};
+
+				if(after_functions.length){
+					console.log(middlewareObj);
+					after_functions[0](middlewareObj);
+				}else{
+					res.end(body);
+				}				
+			}
+			);
+	}
+
+	function http_after_callback(error, response, body){
+		if(error){
+			console.log('error-after', error);			
+		}
+
+		currentIndex++;		
+
+		if(response.statusCode == 200){
+			if(after_functions[currentIndex]){
+				after_functions[currentIndex](body);
+			}else{
+				/* Hack */
+				delete body.response.headers['content-length'];
+
+				res.writeHead(body.response.statusCode, body.response.headers);
+
+				var data = body.response.result.data || "";
+
+				if(data && typeof data != "string"){
+					data = JSON.stringify(data);
+				}
+
+				res.end(data);
+			}
+		}else{
+			res.end("No 200. Don't know!");
+		}
+	}	
+
+
+	if(before_functions.length){
+		before_functions[0](middlewareObj);
+	}else{
+		call_private(middlewareObj);
+	}
+}
 
 http.createServer(app).listen(9091);

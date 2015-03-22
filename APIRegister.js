@@ -1,43 +1,44 @@
-var express = require("express");
-var http = require("http");
-var mongoose = require('mongoose');
-var sha1 = require('crypto-js/sha1');
+var express = require("express"),
+	http = require("http"),
+	mongo = require('mongodb'),
+	monk = require('monk'),
+	db = monk('localhost/users'),
+	collection = db.get('userinfo'),
+	sha1 = require('crypto-js/sha1'),
+	app = express();
 
-var app = express();
-
-mongoose.connect('mongodb://localhost/userinfo');
-
-var schema = new mongoose.Schema({
-	username: String,
-	hash_password: String,
-	key: String,
-	group: Number
-});
-
-var model = mongoose.model('user', schema);
+/*
+Schema for collection userinfo
+{	'username': String,
+	'hash_password': String,
+	'key': String,
+	'group': Number
+}
+*/
 
 app.get('/getkey', function(req, res) {
     var username = req.query.username;
     var password = req.query.password;
     
     if(username == undefined || password == undefined) {
-		res.send('need username and password');	
+    	res.writeHead(400, {"Content-Type": "text/plain"});
+		res.write("need username and password");
+		res.send();	
 	} else {
-		var hash_password = sha1(password);
-		console.log(hashed_password);
-		var found = false;
-		var key = '';
-		model.find({username: username, hash_password: hash_password}, function(data) {
-			key = data.key;
-			found = true;
+		var hash_password = sha1(password).toString();		
+		collection.find({username: username, hash_password: hash_password}, function(err, data) {			
+			if(data != null && data.length > 0) {
+				var key = data[0].key;
+				res.writeHead(200, {"Content-Type": "application/json"});
+				res.write(JSON.stringify({"key" : key}));
+				res.send();
+			} else {	
+				res.writeHead(400, {"Content-Type": "text/plain"});
+				res.write("wrong username or password");
+				res.send();
+			}
 		});
-		if(found) {
-			res.writeHead(200, {"Content-Type": "application/json"});
-			res.send(JSON.stringify({"key" : key}));
-		} else {	
-			res.writeHead(400, {"Content-Type": "text/plain"});
-			res.send("wrong username or password");
-		}
+		
 	}
 });
 
@@ -45,26 +46,31 @@ app.get('/getkey', function(req, res) {
 app.post('/register', function(req, res) {
 	var username = req.query.username;
 	var password = req.query.password;
+
 	if(username == undefined || password == undefined) {
 		res.send('need username and password');	
 	} else {
-		var hash_password = sha1(password);
-		var found = false;
-		model.find({username: username}, function(data) {
-			found = true;
+		var hash_password = sha1(password).toString();
+		collection.find({username: username}, function(err, data) {
+			console.log(data);
+			if(data.length > 0) {
+				res.writeHead(400, {"Content-Type": "text/plain"});
+				res.write('username exists')
+				res.send();
+			} else {		
+				var group = username.length%2;
+				var key = username + '_' + hash_password + group;
+				var record = {username: username, hash_password: hash_password, key: key, group: group};
+				collection.insert(record, function(err, doc) {
+					if(err) throw err;
+					else {
+						res.writeHead(202, {"Content-Type": "text/plain"});
+						res.write('new record inserted')
+						res.send();		
+					}
+				});			
+			}
 		});
-		if(found) {
-			res.writeHead(400, {"Content-Type": "text/plain"});
-			res.send("user already registered");
-		} else {	
-			res.writeHead(202, {"Content-Type": "text/plain"});
-			res.send();
-			var group = username.length%2;
-			var key = username + '_' + hash_password + group;
-			var record = new model({username: username, hash_password: hash_password, key: key});
-			console.log(record);
-			record.save();
-		}
 	}
 });
 
