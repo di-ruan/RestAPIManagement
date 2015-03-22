@@ -8,13 +8,25 @@ var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
 // Connection URL 
-var url = 'mongodb://localhost:27017/users';
+var url = 'mongodb://localhost:27017/mydb';
 
 app.use(bodyParser.json());
 
 
-app.post("*", function(request, response){
+app.post("/*", function(request, response){
+  if (!valid_json(request.body))
+  {
+    response.writeHead(400, { "Content-Type": "text/plain"});
+    response.end("bad json format");
+    return;
+  }
   response.writeHead(200, { "Content-Type": "application/json"});
+  
+  if (request.body.response.statusCode[0] != 2)
+  {
+    response.end(JSON.stringify(request.body));
+    return;
+  }
 
   if(request.body.request.method == "GET"){
     var key = request.body.request.headers['Key'];
@@ -23,7 +35,6 @@ app.post("*", function(request, response){
       key_not_match(request, response);
       return;
     }
-
 
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err);
@@ -48,8 +59,6 @@ app.post("*", function(request, response){
         }else{
           key_not_match(request,respnse);
         }
-    }else{
-        console.log('key doesn\'t exist');
     }
    });
   };
@@ -75,12 +84,8 @@ app.post("*", function(request, response){
     var findDocuments = function(db,callback) {
 
     // Get the documents collection 
-<<<<<<< HEAD
     var collection = db.collection('testData');
 
-=======
-    var collection = db.collection('userinfo');
->>>>>>> a30bbf32577c23e43c94800cfffe2534d2724d14
     // Check if the key exists
     collection.findOne({'key':'q'},function(err, docs) {
         assert.equal(null, err);
@@ -93,8 +98,6 @@ app.post("*", function(request, response){
         }else{
           key_not_match(request,respnse);
         }
-    }else{
-        console.log('key doesn\'t exist');
     }
    });
   };
@@ -110,7 +113,6 @@ http.createServer(app).listen(9707);
 function key_match(request, response)
 {
   console.log("Key match");
-  request.body.response['status code'] = 201;
   response.end(JSON.stringify(request.body));
 }
 
@@ -124,15 +126,26 @@ function key_not_match(request, response)
 function group_match(request, response)
 {
   console.log("Group match");
-  request.body.response['status code'] = 201;
   response.end(JSON.stringify(request.body));
 }
 
 function group_not_match(request, response)
 {
   console.log("Group not match");
-  request.body.response['status code'] = 405;
+  request.body.response['status code'] = 401;
   response.end(JSON.stringify(request.body));
 }
 
+function valid_json(body)
+{
+  if (body == null || body.request == null || body.response == null || body.publicUrl == null || body.privateUrl == null)
+    return false;
+  var request = body.request;
+  if (request.headers == null || request.method == null)
+    return false;
+  var response = body.response;
+  if (response.headers == null || response.result == null || response.statusCode == null)
+    return false;
+  return true;
+}
 
