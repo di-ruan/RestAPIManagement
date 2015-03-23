@@ -1,8 +1,8 @@
 # RestAPIManagement
 A service for Restful API management 
 
-Please change the second part of secretAccessKey in sqs-config.json to:
-vJNyJM2VgCjIfAJ0AFomhNSGFSMYl
+Please get the secretAccessKey in sqs-config.json from the google doc: Schema
+
 
 
 Deployment:
