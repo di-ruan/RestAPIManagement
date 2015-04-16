@@ -1,11 +1,8 @@
-# RestAPIManagement
+# RestAPIManagement by DoREST team
+
 A service for Restful API management 
 
-Please get the secretAccessKey in sqs-config.json from the google doc: Schema
-
-
-
-(1) How to deploy:
+(1) How to deploy locally:
 
 9090 	API mapping
 9091 	API manager
