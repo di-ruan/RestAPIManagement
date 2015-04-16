@@ -1,4 +1,4 @@
-# RestAPIManagement by DoREST team
+# Rest API Management by DoREST team
 
 A service for Restful API management 
 
