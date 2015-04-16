@@ -5,7 +5,7 @@ Please get the secretAccessKey in sqs-config.json from the google doc: Schema
 
 
 
-Deployment:
+(1) How to deploy:
 
 9090 	API mapping
 9091 	API manager
